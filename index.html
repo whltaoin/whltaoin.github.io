@@ -1,32 +1,901 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<title>whltaoin</title>
-		<link rel="shortcut icon" href="img/favicon.ico">
-		<link rel="stylesheet" href="css/style.css">
-		<script src="js/up.js" type="text/javascript" charset="utf-8"></script>
-	</head>
-	<body onselectstart="return false">
-		<div class="banner">
-			<div class="content">
-				<div class="fonts">
-					<h3 class="font_style">whltaoin的个人网站</h3>
-					<h3 class="font_style font_style1">Whltaoin Personal Website</h3>
-				</div>
-				<div class="content_nav">
-					<div class="nav_top">
-							<a href="whltaoin_blog.html"target="_blank">&#62;&#62; 个人博客（Blog）&#60;&#60;</a>
-						
-					</div>
-					<div class="nav_conteer">
-							<a href="whltaoin_journal.html"target="_blank">&#62;&#62; 个人日志（Journal）&#60;&#60;</a>
-					</div>
-					<div class="nav_bottom">
-							<a href="whltaoin_code.html" target="_blank">&#62;&#62; 代码展示（Code）&#60;&#60;</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VarYa | 野生程序员的技术自留地</title>
+    <!-- 外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- 自定义Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        geek: {
+                            dark: '#0A0E17',
+                            medium: '#121A29',
+                            light: '#1E293B',
+                            accent: '#00F0FF', // 科技蓝
+                            neon: '#39FF14',  // 霓虹绿
+                            purple: '#9D00FF' // 霓虹紫
+                        }
+                    },
+                    fontFamily: {
+                        code: ['Consolas', 'Monaco', 'Fira Code', 'monospace'],
+                        cyber: ['Orbitron', 'sans-serif'] // 科技感字体
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'type': 'type 3.5s steps(40, end) forwards',
+                        'blink': 'blink 1s step-end infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(0, 240, 255, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.3)' }
+                        },
+                        type: {
+                            'from': { width: '0' },
+                            'to': { width: '100%' }
+                        },
+                        blink: {
+                            'from, to': { borderColor: 'transparent' },
+                            '50%': { borderColor: '#00F0FF' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 霓虹文字阴影 */
+            .text-shadow-neon {
+                text-shadow: 0 0 5px #00F0FF, 0 0 10px #00F0FF, 0 0 20px #00F0FF;
+            }
+            .text-shadow-neon-purple {
+                text-shadow: 0 0 5px #9D00FF, 0 0 10px #9D00FF;
+            }
+            /* 网格背景 */
+            .bg-grid {
+                background-image: linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            /* 3D卡片效果 */
+            .card-3d {
+                transform-style: preserve-3d;
+                perspective: 1000px;
+            }
+            .card-3d-inner {
+                transition: transform 0.5s ease;
+                transform-style: preserve-3d;
+            }
+            .card-3d:hover .card-3d-inner {
+                transform: rotateY(5deg) rotateX(3deg) translateY(-5px);
+            }
+            /* 打字机效果容器 */
+            .typing-container {
+                overflow: hidden;
+                border-right: 3px solid #00F0FF;
+                white-space: nowrap;
+            }
+            /* 粒子元素 */
+            .particle {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(0, 240, 255, 0.7);
+                pointer-events: none;
+                z-index: 0;
+            }
+            /* 滚动渐入动画 */
+            .fade-in {
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.8s ease, transform 0.8s ease;
+            }
+            .fade-in.active {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <!-- 引入科技感字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-geek-dark text-gray-200 font-code min-h-screen overflow-x-hidden">
+    <!-- 1. 代码雨背景（Canvas动态效果） -->
+    <canvas id="codeRain" class="fixed inset-0 z-[-2] opacity-30"></canvas>
+    <!-- 2. 网格背景（增强科技感） -->
+    <div class="fixed inset-0 bg-grid z-[-1]"></div>
+
+    <!-- 导航栏（滚动渐变+下划线动画） -->
+    <header id="navbar" class="sticky top-0 z-50 bg-geek-medium/80 backdrop-blur-md border-b border-geek-accent/30 transition-all duration-500">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <!-- 发光Logo -->
+                <div class="w-10 h-10 rounded-full bg-geek-dark border border-geek-accent animate-glow flex items-center justify-center">
+                    <i class="fa fa-code text-geek-accent text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-white font-cyber">VarYa<span class="text-geek-accent text-shadow-neon">_Hub</span></h1>
+            </div>
+            <nav class="hidden md:flex gap-8">
+                <a href="#about" class="relative group hover:text-geek-accent transition-colors py-1">
+                    关于博主
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-geek-accent transition-all duration-300 group-hover:w-full"></span>
+                </a>
+                <a href="#tech-stack" class="relative group hover:text-geek-accent transition-colors py-1">
+                    技术栈
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-geek-accent transition-all duration-300 group-hover:w-full"></span>
+                </a>
+                <a href="#projects" class="relative group hover:text-geek-accent transition-colors py-1">
+                    实战项目
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-geek-accent transition-all duration-300 group-hover:w-full"></span>
+                </a>
+                <a href="#resources" class="relative group hover:text-geek-accent transition-colors py-1">
+                    技术资源
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-geek-accent transition-all duration-300 group-hover:w-full"></span>
+                </a>
+            </nav>
+            <button class="md:hidden text-gray-300 hover:text-geek-accent transition-colors">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 英雄区（打字动画+粒子动效+3D浮动） -->
+    <section class="relative py-28 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-geek-medium/50 to-geek-dark z-0"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <!-- 3D浮动头像 -->
+                <div class="mb-6 animate-float">
+                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-geek-dark border-2 border-geek-accent animate-glow mx-auto flex items-center justify-center">
+                        <i class="fa fa-user-circle-o text-5xl md:text-6xl text-geek-accent"></i>
+                    </div>
+                </div>
+                <!-- 霓虹标题 -->
+                <h2 class="text-[clamp(2rem,6vw,4rem)] font-bold text-white mb-6 font-cyber">
+                    野生程序员的<span class="text-geek-accent text-shadow-neon">技术修行</span>
+                </h2>
+                <!-- 打字机动画 -->
+                <div class="max-w-2xl mx-auto mb-10">
+                    <p class="text-lg md:text-xl text-gray-300 typing-container mx-auto animate-type">
+                        专注Java生态与微服务实战，擅长把甲方需求翻译成人话
+                    </p>
+                </div>
+                <!-- 发光按钮 -->
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#projects" class="bg-geek-accent text-geek-dark px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105 shadow-lg shadow-geek-accent/20">
+                        查看实战项目 <i class="fa fa-rocket ml-2"></i>
+                    </a>
+                    <a href="https://varin.blog.csdn.net/" target="_blank" class="bg-transparent border-2 border-geek-accent text-geek-accent px-8 py-3 rounded-lg font-semibold hover:bg-geek-accent/10 transition-all transform hover:scale-105">
+                        访问CSDN博客 <i class="fa fa-external-link ml-1"></i>
+                    </a>
+                </div>
+                <!-- 技术活跃度图表（动态数据可视化） -->
+                <div class="mt-20 max-w-2xl mx-auto fade-in">
+                    <h4 class="text-white text-lg mb-4 font-cyber">技术分享活跃度</h4>
+                    <div class="bg-geek-medium/80 p-4 rounded-xl border border-geek-light">
+                        <canvas id="activityChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 粒子效果容器（鼠标跟随） -->
+        <div id="particleContainer" class="absolute inset-0 z-0"></div>
+    </section>
+
+    <!-- 博主介绍（3D卡片+滚动渐入） -->
+    <section id="about" class="py-20 bg-geek-medium/30">
+        <div class="container mx-auto px-4">
+            <div class="section-title text-center mb-16 fade-in">
+                <h3 class="text-3xl md:text-4xl font-bold text-white mb-4 font-cyber">
+                    <span class="text-geek-purple text-shadow-neon-purple">//</span> 关于博主
+                </h3>
+                <div class="w-20 h-1 bg-geek-accent mx-auto rounded-full"></div>
+            </div>
+
+            <div class="max-w-5xl mx-auto">
+                <!-- 3D交互卡片 -->
+                <div class="card-3d fade-in">
+                    <div class="card-3d-inner bg-geek-medium rounded-2xl p-8 border border-geek-light/50 shadow-xl">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="w-32 h-32 rounded-full bg-geek-dark border-2 border-geek-purple animate-glow flex items-center justify-center overflow-hidden">
+                                <i class="fa fa-code-fork text-6xl text-geek-purple"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-2xl md:text-3xl font-bold text-white mb-4 font-cyber">VarYa</h4>
+                                <div class="flex flex-wrap items-center gap-3 mb-6">
+                                    <span class="bg-geek-light px-4 py-1 rounded-full text-sm flex items-center gap-2">
+                                        <i class="fa fa-calendar-check-o text-geek-accent"></i> 码龄6年
+                                    </span>
+                                    <span class="bg-geek-light px-4 py-1 rounded-full text-sm flex items-center gap-2">
+                                        <i class="fa fa-coffee text-geek-accent"></i> Java开发者
+                                    </span>
+                                    <span class="bg-geek-light px-4 py-1 rounded-full text-sm flex items-center gap-2">
+                                        <i class="fa fa-map-marker text-geek-accent"></i> 技术自留地
+                                    </span>
+                                </div>
+                                <p class="text-gray-300 mb-6 leading-relaxed">
+                                    野生程序员，专注Spring生态与微服务架构实战，热衷于分享从基础到进阶的技术干货。擅长将复杂需求拆解为清晰的技术实现，偶尔在"翻译"甲方需求时翻车但总能快速修复。<br><br>
+                                    坚信"好代码是改出来的，好架构是拆出来的"，持续深耕Java底层与分布式技术。
+                                </p>
+                                <!-- 旋转社交图标 -->
+                                <div class="flex gap-4">
+                                    <a href="#" class="w-10 h-10 rounded-full bg-geek-light flex items-center justify-center text-gray-300 hover:bg-geek-accent hover:text-geek-dark transition-all transform hover:rotate-12">
+                                        <i class="fa fa-github text-xl"></i>
+                                    </a>
+                                    <a href="https://varin.blog.csdn.net/" target="_blank" class="w-10 h-10 rounded-full bg-geek-light flex items-center justify-center text-gray-300 hover:bg-geek-accent hover:text-geek-dark transition-all transform hover:rotate-12">
+                                        <i class="fa fa-book text-xl"></i>
+                                    </a>
+                                    <a href="#" class="w-10 h-10 rounded-full bg-geek-light flex items-center justify-center text-gray-300 hover:bg-geek-accent hover:text-geek-dark transition-all transform hover:rotate-12">
+                                        <i class="fa fa-envelope text-xl"></i>
+                                    </a>
+                                    <a href="#" class="w-10 h-10 rounded-full bg-geek-light flex items-center justify-center text-gray-300 hover:bg-geek-accent hover:text-geek-dark transition-all transform hover:rotate-12">
+                                        <i class="fa fa-weibo text-xl"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心技术栈（霓虹进度条+悬停缩放） -->
+    <section id="tech-stack" class="py-20 bg-geek-dark">
+        <div class="container mx-auto px-4">
+            <div class="section-title text-center mb-16 fade-in">
+                <h3 class="text-3xl md:text-4xl font-bold text-white mb-4 font-cyber">
+                    <span class="text-geek-purple text-shadow-neon-purple">//</span> 核心技术栈
+                </h3>
+                <p class="text-gray-400 max-w-2xl mx-auto mb-6">聚焦Java生态与微服务架构，覆盖从基础框架到中间件、底层原理的全链路技术</p>
+                <div class="w-20 h-1 bg-geek-accent mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 框架类 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-cubes text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">核心框架</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Java 基础与进阶</span>
+                                <span class="text-geek-neon">95%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 95%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Spring Boot 全注解开发</span>
+                                <span class="text-geek-neon">90%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 90%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Spring Cloud 微服务</span>
+                                <span class="text-geek-neon">85%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 85%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 数据与中间件 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.1s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-database text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">数据与中间件</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Redis 分布式锁/队列</span>
+                                <span class="text-geek-neon">88%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 88%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Kafka 消息同步</span>
+                                <span class="text-geek-neon">82%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 82%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>MySQL 分表与优化</span>
+                                <span class="text-geek-neon">90%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 90%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 工具与组件 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.2s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-wrench text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">工具与组件</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Docker 容器化</span>
+                                <span class="text-geek-neon">85%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 85%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Nginx 反向代理</span>
+                                <span class="text-geek-neon">80%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 80%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Maven 项目管理</span>
+                                <span class="text-geek-neon">92%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 92%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 算法与安全 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.3s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-shield text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">算法与安全</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>DFA 敏感词算法</span>
+                                <span class="text-geek-neon">83%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 83%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>分布式任务调度</span>
+                                <span class="text-geek-neon">78%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 78%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>线程安全</span>
+                                <span class="text-geek-neon">87%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 87%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 底层与性能 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.4s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-microchip text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">底层与性能</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>JVM 内存模型</span>
+                                <span class="text-geek-neon">93%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 93%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>垃圾回收机制</span>
+                                <span class="text-geek-neon">90%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 90%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>多线程并发</span>
+                                <span class="text-geek-neon">85%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 85%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 开发规范 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.5s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-geek-accent/20 flex items-center justify-center">
+                            <i class="fa fa-list-ol text-2xl text-geek-accent"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white font-cyber">开发规范</h4>
+                    </div>
+                    <ul class="space-y-4 text-gray-300">
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>三层架构设计</span>
+                                <span class="text-geek-neon">95%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 95%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>Bean 自动装配</span>
+                                <span class="text-geek-neon">92%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 92%"></div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span>定时任务最佳实践</span>
+                                <span class="text-geek-neon">85%</span>
+                            </div>
+                            <div class="w-full h-2 bg-geek-light rounded-full overflow-hidden">
+                                <div class="h-full bg-geek-neon rounded-full" style="width: 85%"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 精选实战项目（3D卡片+渐变顶栏） -->
+    <section id="projects" class="py-20 bg-geek-medium/30">
+        <div class="container mx-auto px-4">
+            <div class="section-title text-center mb-16 fade-in">
+                <h3 class="text-3xl md:text-4xl font-bold text-white mb-4 font-cyber">
+                    <span class="text-geek-purple text-shadow-neon-purple">//</span> SpringCloud 实战项目
+                </h3>
+                <p class="text-gray-400 max-w-2xl mx-auto mb-6">从环境搭建到核心功能实现，完整覆盖微服务项目全生命周期</p>
+                <div class="w-20 h-1 bg-geek-accent mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 项目1 -->
+                <div class="card-3d fade-in">
+                    <div class="card-3d-inner bg-geek-dark rounded-xl overflow-hidden border border-geek-light/50 shadow-xl">
+                        <div class="h-40 bg-gradient-to-r from-geek-purple/30 to-geek-accent/30 flex items-center justify-center">
+                            <i class="fa fa-cogs text-6xl text-white/80 animate-pulse-slow"></i>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h4 class="text-xl font-semibold text-white font-cyber">阶段一：微服务环境搭建（Mac版）</h4>
+                                <span class="bg-geek-light px-2 py-1 rounded text-xs">基础配置</span>
+                            </div>
+                            <p class="text-gray-300 mb-4 text-sm bg-geek-medium/50 p-4 rounded-lg border-l-2 border-geek-accent">
+                                详解Mac环境下微服务基础设施搭建，包括Docker部署Nacos、MySQL，brew安装JDK、Maven、Redis，以及Nginx反向代理配置。
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">Docker</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">Nacos</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">Nginx</span>
+                            </div>
+                            <a href="#" class="text-geek-accent text-sm hover:underline flex items-center">
+                                查看详情 <i class="fa fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目2 -->
+                <div class="card-3d fade-in" style="transition-delay: 0.1s">
+                    <div class="card-3d-inner bg-geek-dark rounded-xl overflow-hidden border border-geek-light/50 shadow-xl">
+                        <div class="h-40 bg-gradient-to-r from-geek-accent/30 to-geek-neon/30 flex items-center justify-center">
+                            <i class="fa fa-shield text-6xl text-white/80 animate-pulse-slow"></i>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h4 class="text-xl font-semibold text-white font-cyber">阶段五：内容安全与服务集成</h4>
+                                <span class="bg-geek-light px-2 py-1 rounded text-xs">安全审核</span>
+                            </div>
+                            <p class="text-gray-300 mb-4 text-sm bg-geek-medium/50 p-4 rounded-lg border-l-2 border-geek-accent">
+                                集成腾讯云文本/图片内容安全服务实现自动审核，接入OpenFeign完成服务间调用，实现文章保存与审核全流程。
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">OpenFeign</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">内容安全</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">服务调用</span>
+                            </div>
+                            <a href="#" class="text-geek-accent text-sm hover:underline flex items-center">
+                                查看详情 <i class="fa fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目3 -->
+                <div class="card-3d fade-in" style="transition-delay: 0.2s">
+                    <div class="card-3d-inner bg-geek-dark rounded-xl overflow-hidden border border-geek-light/50 shadow-xl">
+                        <div class="h-40 bg-gradient-to-r from-geek-neon/30 to-geek-purple/30 flex items-center justify-center">
+                            <i class="fa fa-clock-o text-6xl text-white/80 animate-pulse-slow"></i>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h4 class="text-xl font-semibold text-white font-cyber">阶段七：Redis延迟队列实现</h4>
+                                <span class="bg-geek-light px-2 py-1 rounded text-xs">中间件</span>
+                            </div>
+                            <p class="text-gray-300 mb-4 text-sm bg-geek-medium/50 p-4 rounded-lg border-l-2 border-geek-accent">
+                                对比DelayQueue、RabbitMQ方案，基于Redis ZSet实现延迟队列，包含任务存储、添加/取消/消费全流程及Schedule服务搭建。
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">Redis</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">延迟队列</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">ZSet</span>
+                            </div>
+                            <a href="#" class="text-geek-accent text-sm hover:underline flex items-center">
+                                查看详情 <i class="fa fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目4 -->
+                <div class="card-3d fade-in" style="transition-delay: 0.3s">
+                    <div class="card-3d-inner bg-geek-dark rounded-xl overflow-hidden border border-geek-light/50 shadow-xl">
+                        <div class="h-40 bg-gradient-to-r from-geek-purple/30 to-geek-neon/30 flex items-center justify-center">
+                            <i class="fa fa-exchange text-6xl text-white/80 animate-pulse-slow"></i>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h4 class="text-xl font-semibold text-white font-cyber">阶段九：Kafka高可用实战</h4>
+                                <span class="bg-geek-light px-2 py-1 rounded text-xs">消息队列</span>
+                            </div>
+                            <p class="text-gray-300 mb-4 text-sm bg-geek-medium/50 p-4 rounded-lg border-l-2 border-geek-accent">
+                                解析Kafka核心概念与ZooKeeper依赖关系，实现生产者/消费者示例，讲解同步异步发送、偏移量提交及高可用设计原理。
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">Kafka</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">ZooKeeper</span>
+                                <span class="bg-geek-light/50 text-xs px-2 py-1 rounded">高可用</span>
+                            </div>
+                            <a href="#" class="text-geek-accent text-sm hover:underline flex items-center">
+                                查看详情 <i class="fa fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10 fade-in">
+                <a href="https://varin.blog.csdn.net/" target="_blank" class="inline-flex items-center gap-2 text-geek-accent hover:underline text-lg font-cyber">
+                    查看全部10+项目阶段 <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术资源（发光图标+悬停动效） -->
+    <section id="resources" class="py-20 bg-geek-dark">
+        <div class="container mx-auto px-4">
+            <div class="section-title text-center mb-16 fade-in">
+                <h3 class="text-3xl md:text-4xl font-bold text-white mb-4 font-cyber">
+                    <span class="text-geek-purple text-shadow-neon-purple">//</span> 热门技术专栏
+                </h3>
+                <p class="text-gray-400 max-w-2xl mx-auto mb-6">聚焦高频面试考点与实战技巧，帮你快速提升技术能力</p>
+                <div class="w-20 h-1 bg-geek-accent mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 专栏1 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in">
+                    <div class="mb-4 text-geek-accent text-4xl animate-pulse-slow">
+                        <i class="fa fa-coffee"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold text-white mb-2 font-cyber">JVM 深度解析</h4>
+                    <p class="text-gray-300 text-sm mb-4">
+                        覆盖JVM组成、运行时数据区、类加载机制、垃圾回收等核心内容，含面试高频问题解析与应对技巧。
+                    </p>
+                    <a href="#" class="text-geek-accent text-sm hover:underline flex items-center">
+                        阅读专栏 <i class="fa fa-angle-right ml-1"></i>
+                    </a>
+                </div>
+
+                <!-- 专栏2 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.1s">
+                    <div class="mb-4 text-geek-neon text-4xl animate-pulse-slow">
+                        <i class="fa fa-random"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold text-white mb-2 font-cyber">多线程实战指南</h4>
+                    <p class="text-gray-300 text-sm mb-4">
+                        解析线程创建、死锁预防、wait/sleep区别等高频考点，含DCL单例等代码示例与线程安全问题拆解。
+                    </p>
+                    <a href="#" class="text-geek-neon text-sm hover:underline flex items-center">
+                        阅读专栏 <i class="fa fa-angle-right ml-1"></i>
+                    </a>
+                </div>
+
+                <!-- 专栏3 -->
+                <div class="bg-geek-medium rounded-xl p-6 border border-geek-light/50 transform transition-all hover:scale-105 hover:border-geek-accent/50 shadow-lg shadow-geek-dark/50 hover:shadow-geek-accent/10 fade-in" style="transition-delay: 0.2s">
+                    <div class="mb-4 text-geek-purple text-4xl animate-pulse-slow">
+                        <i class="fa fa-cog"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold text-white mb-2 font-cyber">Spring Boot注解大全</h4>
+                    <p class="text-gray-300 text-sm mb-4">
+                        详解@Configuration、@Autowired、@Scheduled等核心注解，对比差异与适用场景，附避坑指南。
+                    </p>
+                    <a href="#" class="text-geek-purple text-sm hover:underline flex items-center">
+                        阅读专栏 <i class="fa fa-angle-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚（霓虹分割线） -->
+    <footer class="bg-geek-medium border-t-2 border-geek-accent/50 py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 mb-4 md:mb-0">
+                    <i class="fa fa-code text-geek-accent text-2xl"></i>
+                    <span class="text-xl font-bold text-white font-cyber">VarYa's Tech Hub</span>
+                </div>
+                <div class="text-gray-400 text-sm text-center md:text-right">
+                    <p>基于 CSDN 博客内容生成 | 原文链接：<a href="https://varin.blog.csdn.net/" target="_blank" class="text-geek-accent hover:underline">varin.blog.csdn.net</a></p>
+                    <p class="mt-1">© 2024 野生程序员的技术自留地 | <span class="text-geek-neon">专注技术，拒绝脱发</span></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 回到顶部按钮（渐显+缩放） -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 bg-geek-accent text-geek-dark w-12 h-12 rounded-full flex items-center justify-center opacity-0 invisible transition-all hover:scale-110 shadow-lg shadow-geek-accent/30 z-50">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- 核心特效JS -->
+    <script>
+        // 1. 代码雨效果
+        const codeRain = document.getElementById('codeRain');
+        const ctx = codeRain.getContext('2d');
+        let width, height;
+        let chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ';
+        let columns = [];
+
+        // 初始化画布
+        function initCodeRain() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            codeRain.width = width;
+            codeRain.height = height;
+            columns = [];
+            // 每列初始位置
+            for (let i = 0; i < Math.floor(width / 20); i++) {
+                columns[i] = Math.random() * -height;
+            }
+        }
+
+        // 绘制代码雨
+        function drawCodeRain() {
+            ctx.fillStyle = 'rgba(10, 14, 23, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#00F0FF';
+            ctx.font = '15px Consolas';
+
+            for (let i = 0; i < columns.length; i++) {
+                let text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * 20, columns[i] * 20);
+                // 随机速度下落
+                columns[i] += Math.random() * 1.5 + 0.5;
+                // 重置列
+                if (columns[i] * 20 > height && Math.random() > 0.975) {
+                    columns[i] = 0;
+                }
+            }
+        }
+
+        // 2. 粒子跟随效果
+        const particleContainer = document.getElementById('particleContainer');
+        let particles = [];
+
+        // 创建粒子
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 5 + 1;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.opacity = Math.random() * 0.8 + 0.2;
+            particleContainer.appendChild(particle);
+
+            // 粒子移动与消失
+            let speedX = (Math.random() - 0.5) * 3;
+            let speedY = (Math.random() - 0.5) * 3;
+            let opacity = 1;
+
+            function updateParticle() {
+                x += speedX;
+                y += speedY;
+                opacity -= 0.01;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.opacity = opacity;
+
+                if (opacity <= 0) {
+                    particleContainer.removeChild(particle);
+                    return;
+                }
+                requestAnimationFrame(updateParticle);
+            }
+
+            requestAnimationFrame(updateParticle);
+        }
+
+        // 3. 滚动渐入效果
+        function checkFadeIn() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(element => {
+                const rect = element.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                if (rect.top < windowHeight * 0.85) {
+                    element.classList.add('active');
+                }
+            });
+        }
+
+        // 4. 导航栏滚动效果
+        function updateNavbar() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2', 'bg-geek-medium/95');
+                navbar.classList.remove('py-3', 'bg-geek-medium/80');
+            } else {
+                navbar.classList.add('py-3', 'bg-geek-medium/80');
+                navbar.classList.remove('py-2', 'bg-geek-medium/95');
+            }
+        }
+
+        // 5. 回到顶部按钮
+        function toggleBackToTop() {
+            const backToTopBtn = document.getElementById('back-to-top');
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.remove('opacity-0', 'invisible');
+                backToTopBtn.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'invisible');
+                backToTopBtn.classList.remove('opacity-100', 'visible');
+            }
+        }
+
+        // 6. 活跃度图表
+        function initChart() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                    datasets: [{
+                        label: '博客发布数',
+                        data: [3, 5, 2, 7, 4, 6],
+                        borderColor: '#00F0FF',
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#00F0FF',
+                        pointBorderColor: '#0A0E17',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccc'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#ccc'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#ccc',
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 事件监听
+        window.addEventListener('resize', initCodeRain);
+        window.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.7) createParticle(e.clientX, e.clientY);
+        });
+        window.addEventListener('scroll', () => {
+            checkFadeIn();
+            updateNavbar();
+            toggleBackToTop();
+        });
+        document.getElementById('back-to-top').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 初始化
+        initCodeRain();
+        initChart();
+        checkFadeIn();
+        updateNavbar();
+        toggleBackToTop();
+
+        // 循环绘制代码雨
+        setInterval(drawCodeRain, 35);
+    </script>
+</body>
 </html>
